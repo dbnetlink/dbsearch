@@ -1,0 +1,63 @@
+﻿body 
+{
+    padding:10px;
+}
+
+.modal-body.fixed-height
+{
+    height: 400px !important;
+    overflow-y: auto;
+    overflow-x:hidden;
+}
+span.match
+{
+    border:1pt solid #336699;
+    background-color: #71c9e5;
+    padding:2px;
+    color:white;
+}
+table.header-fixed 
+{
+    display: table;
+    width: 100%;
+}
+table.header-fixed thead, 
+table.header-fixed tbody 
+{
+    float: left;
+    width: 100%;
+}
+table.header-fixed tbody 
+{
+    overflow: auto;
+    height: 300px;
+}
+table.header-fixed tr 
+{
+    width: 100%;
+    display: table;
+    text-align: left;
+}
+table.header-fixed th:nth-child(1),
+table.header-fixed td:nth-child(1) 
+{
+    width: 90%;
+}
+table.header-fixed th:nth-child(2) 
+{
+    padding-left:17px;
+}
+table.header-fixed td:nth-child(2) 
+{
+    width: 50px;
+}
+
+label.filter-off span
+{
+    text-decoration:line-through;
+}
+
+div.action-buttons
+{
+    display:flex;
+}

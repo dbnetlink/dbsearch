@@ -1,0 +1,250 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Db Search & Replace</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="Content/DbSearch.css" rel="stylesheet" />
+ </head>
+<body>
+<nav class="navbar navbar-default navbar-inverse" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Database Search And Replace Tool</a>
+    </div>
+  </div>
+</nav>
+
+<div class="row">
+    <!-- Search Parameters Panel -->
+    <div class="col col-md-2">
+        <form role="form">
+            <div class="form-group">
+                <label for="searchToken">Database</label>
+                <select class="form-control" id="databaseDdl" name="databaseDdl"></select>
+            </div>
+            <hr />
+            <ul id="optionsTab" class="nav nav-tabs">
+              <li class="active"><a href="#search" data-toggle="tab" data-type="find">Find</a></li>
+              <li><a href="#search" data-toggle="tab" data-type="replace">Replace</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="search">
+                    <div class="form-group">
+                        <label for="searchToken">Search Token</label>
+                        <input class="form-control" id="searchTokenTxt" name="searchTokenTxt" placeholder="Search token"/>
+                    </div>
+                    <div class="form-group replacement-text" style="display:none">
+                        <label for="searchToken">Replacement Text</label>
+                        <input class="form-control" id="replaceTokenTxt" name="replaceTokenTxt" placeholder="Replacement text"/>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="matchCaseCb" name="matchCaseCb" /> Match case
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="matchWholeWordCb" name="matchWholeWordCb" /> Match whole word
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="useRegexCb" name="useRegexCb" /> Use regular expressions
+                        </label>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <div class="pull-right">
+                            <button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#tableSelectDialog" id="selectTablesBtn" title="Select tables to be searched">
+                                <span class="glyphicon glyphicon-th-list"></span> Tables <span class="badge">0</span>
+                            </button>
+                            <button type="button" id="searchBtn" class="btn btn-primary btn-sm">
+                                <span class="glyphicon glyphicon-search"></span> <span id="searchBtnText">Find</span>
+                            </button>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="form-group">
+                        <div id="message-line" class="alert alert-warning" hidden></div>
+                    </div>
+                    <input type="hidden" id="selectedTables" name="selectedTables" />
+                    <input type="hidden" id="selectedColumns" name="selectedColumns" />                    
+                    <input type="hidden" id="mode" name="mode" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="col-md-10">
+        <div class="alert alert-info" role="alert" hidden><span class="badge"></span> matches found.</div>
+        <div id="progress" class="alert alert-info" role="alert" hidden></div>
+        <div class="panel-group" id="accordion"></div>
+    </div>
+</div>
+
+<!-- Table Selection Dialog -->
+<div class="modal fade" id="tableSelectDialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header alert alert-info">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Select the tables you wish to search</h4>
+            </div>
+            <div class="modal-body fixed-height">
+                <table id="tableSelection" class="table table-condensed table-bordered header-fixed">
+                    <thead>
+                        <tr class="active header-row">
+                            <th>Table</th>
+                            <th><input type="checkbox"></th>
+                        </tr>
+                    </thead>
+                    <tbody/>
+                </table>  
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                    <span class="glyphicon glyphicon-remove"></span> Cancel
+                </button>
+                <button type="button" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-ok"></span> Select
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editValueDialog" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header alert alert-info">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Edit Value</h4>
+      </div>
+      <div class="modal-body fixed-height">
+        <textarea id="editValueText" class="form-control" rows="16"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+            <span class="glyphicon glyphicon-remove"></span> Cancel
+        </button>
+        <button type="button" id="saveEditBtn" class="btn btn-primary">
+            <span class="glyphicon glyphicon-ok"></span> Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="recordViewDialog" tabindex="-1" role="dialog"  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header alert alert-info">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body fixed-height">
+      <table id="recordViewTable" class="table table-condensed table-bordered"></table>  
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">
+            <span class="glyphicon glyphicon-remove"></span> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="columnSelectDialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header alert alert-info">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Select the columns you wish to search</h4>
+            </div>
+            <div class="modal-body fixed-height">
+                <table id="columnSelection" class="table table-condensed table-bordered header-fixed">
+                    <thead>
+                        <tr class="active header-row">
+                            <th>Column</th>
+                            <th><input type="checkbox"></th>
+                        </tr>
+                    </thead>
+                    <tbody/>
+                </table>  
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                    <span class="glyphicon glyphicon-remove"></span> Cancel
+                </button>
+                <button type="button" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-ok"></span> Select
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="table-panel-template" type="text/x-handlebars-template">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <span class="panel-title">
+                <button class="btn btn-default table-name" title="Toggle display of table matches" data-toggle="collapse" data-parent="#accordion" data-target="#{{id}}" style="margin-right:5px">
+                    {{tableName}}<span class="badge" style="margin-left:5px">0</span>
+                </button>
+            </span>
+            <div class="btn-group" data-toggle="buttons"></div>
+        </div>
+        <div class="panel-collapse collapse" id="{{id}}">
+            <div class="panel-body">
+                <table class="table table-condensed">
+                    <colgroup><col><col style="width:100%"><col></colgroup>
+                    <thead>
+                        <tr class="active"><th>Column&nbsp;Name</th><th>Text</th><th></th></tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script id="record-view-template" type="text/x-handlebars-template">
+    <table id="recordViewTable" class="table table-condensed table-bordered">
+        <thead>
+            <tr>
+                <th>Column Name</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+        {{#each record}}
+            <tr>
+                <td>{{@key}}</td>
+                <td>{{this}}</td>
+            </tr>
+        {{/each}}
+        </tbody>
+    </table>  
+</script>
+
+<div id="message" class="alert float-message"></div>
+<!--Script references. -->
+<!--Reference the jQuery library. -->
+<script src="Scripts/jquery-1.9.1.min.js"></script>
+<script src="Scripts/jquery.cookie.js"></script>
+<script src="Scripts/serialize-json.jquery.js"></script>
+<script src="Scripts/bootstrap.min.js"></script>
+<script src="Scripts/handlebars.min.js"></script>
+<script src="Scripts/bootbox.min.js"></script>
+<!--Reference the SignalR library. -->
+<script src="Scripts/jquery.signalR-2.2.0.min.js"></script>
+<!--Reference the autogenerated SignalR hub script. -->
+<script src="signalr/hubs"></script>
+<!--Add script to update the page and send messages.--> 
+<script src="Scripts/DbSearch.js"></script>
+</body>
+</html>
